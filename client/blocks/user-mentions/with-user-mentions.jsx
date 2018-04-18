@@ -18,8 +18,8 @@ import UserMentionSuggestionList from './suggestion-list';
  * @returns {object} the enhanced component
  */
 export default EnhancedComponent =>
-	class withUserMentionSuggestions extends React.Component {
-		static displayName = `withUserMentionSuggestions( ${ EnhancedComponent.displayName ||
+	class withUserMentions extends React.Component {
+		static displayName = `withUserMentions( ${ EnhancedComponent.displayName ||
 			EnhancedComponent.name } )`;
 		static propTypes = {};
 
