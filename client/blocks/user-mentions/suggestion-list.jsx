@@ -62,7 +62,7 @@ UserMentionSuggestionList.defaultProps = {
 	onClick: noop,
 	onClose: noop,
 	query: '',
-	popoverContext: {},
+	popoverContext: null,
 	selectedSuggestionId: 0,
 	suggestions: [],
 };

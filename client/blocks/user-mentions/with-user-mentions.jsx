@@ -25,6 +25,7 @@ export default EnhancedComponent =>
 
 		state = {
 			showPopover: false,
+			popoverContext: null,
 		};
 
 		handleKeyPress = e => {
@@ -34,6 +35,10 @@ export default EnhancedComponent =>
 			}
 		};
 
+		setPopoverContext = popoverContext => {
+			this.setState( { popoverContext } );
+		};
+
 		render() {
 			const suggestions = [
 				{
@@ -41,13 +46,19 @@ export default EnhancedComponent =>
 					user_login: 'testuser',
 				},
 			];
-			const cursorComponent = this.state.showPopover && (
-				<UserMentionSuggestionList suggestions={ suggestions } />
-			);
 			return (
 				<div>
-					<EnhancedComponent { ...this.props } onKeyPress={ this.handleKeyPress } />
-					{ cursorComponent }
+					<EnhancedComponent
+						{ ...this.props }
+						onKeyPress={ this.handleKeyPress }
+						ref={ this.setPopoverContext }
+					/>
+					{ this.state.showPopover && (
+						<UserMentionSuggestionList
+							suggestions={ suggestions }
+							popoverContext={ this.state.popoverContext }
+						/>
+					) }
 				</div>
 			);
 		}

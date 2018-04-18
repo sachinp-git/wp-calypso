@@ -3,7 +3,7 @@
 /**
  * External dependencies
  */
-import React from 'react';
+import React, { Component } from 'react';
 
 /**
  * Internal dependencies
@@ -11,6 +11,11 @@ import React from 'react';
 import ExampleInput from './example-input';
 import withUserMentions from '../with-user-mentions';
 
-const UserMentionsExampleInput = ( { onKeyPress } ) => <textarea onKeyPress={ onKeyPress } />;
+// Must be a component to accept a ref
+class UserMentionsExampleInput extends Component {
+	render() {
+		return <textarea onKeyPress={ this.props.onKeyPress } />;
+	}
+}
 
 export default withUserMentions( UserMentionsExampleInput );
