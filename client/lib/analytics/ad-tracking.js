@@ -18,6 +18,7 @@ import userModule from 'lib/user';
 import { loadScript as loadScriptCallback } from 'lib/load-script';
 import { shouldSkipAds } from 'lib/analytics/utils';
 import { promisify } from '../../utils';
+import { isGoogleAnalyticsAllowed } from 'lib/analytics';
 
 /**
  * Module variables
@@ -63,6 +64,7 @@ let lastFloodlightPageViewTime = 0;
 const FACEBOOK_TRACKING_SCRIPT_URL = 'https://connect.facebook.net/en_US/fbevents.js',
 	ATLAS_TRACKING_SCRIPT_URL = 'https://ad.atdmt.com/m/a.js',
 	GOOGLE_TRACKING_SCRIPT_URL = 'https://www.googleadservices.com/pagead/conversion_async.js',
+	GOOGLE_ANALYTICS_SCRIPT_URL = 'https://www.google-analytics.com/analytics.js',
 	BING_TRACKING_SCRIPT_URL = 'https://bat.bing.com/bat.js',
 	CRITEO_TRACKING_SCRIPT_URL = 'https://static.criteo.net/js/ld/ld.js',
 	ADWORDS_CONVERSION_ID = config( 'google_adwords_conversion_id' ),
@@ -254,6 +256,29 @@ function setupOutbrainGlobal() {
 }
 
 const loadScript = promisify( loadScriptCallback );
+
+/**
+ * Loading Google analytics independently from the rest of the tracking scripts.
+ *
+ * Why? Because ad-tracking and google-analytics have two different switches and we
+ * would probably not want one to stop the other.
+ *
+ * Moreover, analytics gets loaded with the page load, while the tracking is lazy-loaded
+ * during actions.
+ */
+async function loadGoogleAnalytics() {
+	try {
+		await loadScript( GOOGLE_ANALYTICS_SCRIPT_URL );
+	} catch ( error ) {
+		debug( 'GA script failed to load properly: ', error );
+	}
+}
+
+if ( isGoogleAnalyticsAllowed() ) {
+	window.addEventListener
+		? window.addEventListener( 'load', loadGoogleAnalytics, false )
+		: window.attachEvent( 'onload', loadGoogleAnalytics );
+}
 
 async function loadTrackingScripts( callback ) {
 	hasStartedFetchingScripts = true;
