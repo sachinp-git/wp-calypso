@@ -154,7 +154,7 @@ export function getStartPeriod( date, unit ) {
 export function formatValue( value, format, code, decimals ) {
 	switch ( format ) {
 		case 'currency':
-			return formatCurrency( value, code, { precision: decimals || 2 } );
+			return formatCurrency( value, code );
 		case 'number':
 			return numberFormat( value, decimals );
 		case 'percent':

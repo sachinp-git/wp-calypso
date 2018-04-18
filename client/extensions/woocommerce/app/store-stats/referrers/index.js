@@ -110,7 +110,7 @@ class Referrers extends Component {
 		const endSelectedDate = getEndPeriod( selectedDate, unit );
 		const showSearch = unfilteredDataLength > LIMIT;
 		const title = `${ translate( 'Store Referrers' ) }${
-			selectedReferrer.referrer ? ' - ' + selectedReferrer.referrer : ''
+			selectedReferrer.referrer ? ': ' + selectedReferrer.referrer : ''
 		}`;
 		const chartFormat = UNITS[ unit ].chartFormat;
 		const periodNavQueryParams = Object.assign(

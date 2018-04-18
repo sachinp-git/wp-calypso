@@ -87,7 +87,7 @@ class StoreStatsChart extends Component {
 	buildToolTipData = ( item, selectedTab ) => {
 		const { tabs } = this.props;
 		const { activeCharts } = this.state;
-		const value = formatValue( item[ selectedTab.attr ], selectedTab.type, item.currency );
+		const value = formatValue( item[ selectedTab.attr ] || 0, selectedTab.type, item.currency );
 		const data = [
 			{ className: 'is-date-label', value: null, label: this.createTooltipDate( item ) },
 			{
