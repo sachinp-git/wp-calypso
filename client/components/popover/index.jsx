@@ -289,7 +289,7 @@ class Popover extends Component {
 	}
 
 	/**
-	 * Adjusts positition swapping left and right values
+	 * Adjusts position swapping left and right values
 	 * when right-to-left directionality is found.
 	 *
 	 * @param  {String} position Original position
@@ -382,6 +382,7 @@ class Popover extends Component {
 
 	setPosition() {
 		this.debug( 'updating position' );
+
 		const position = this.computePosition();
 		if ( ! position ) {
 			return null;
@@ -454,9 +455,21 @@ class Popover extends Component {
 
 		this.debug( 'rendering ...' );
 
+		let stylePosition = this.getStylePosition();
+
+		// If a fixed position has been specified, honour that
+		// @todo move into a more logical spot
+		const { popoverPositionTop, popoverPositionLeft } = this.props;
+		if ( popoverPositionTop && popoverPositionLeft ) {
+			stylePosition = {
+				left: popoverPositionLeft,
+				top: popoverPositionTop,
+			};
+		}
+
 		return (
 			<RootChild className={ this.props.rootClassName }>
-				<div style={ this.getStylePosition() } className={ classes }>
+				<div style={ stylePosition } className={ classes } ref={ this.props.popoverRef }>
 					<div className="popover__arrow" />
 
 					<div ref={ this.setDOMBehavior } className="popover__inner">

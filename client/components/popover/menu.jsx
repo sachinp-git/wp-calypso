@@ -21,7 +21,7 @@ class PopoverMenu extends React.Component {
 		className: PropTypes.string,
 		rootClassName: PropTypes.string,
 		popoverComponent: PropTypes.func,
-		popoverTitle: PropTypes.string, // used by ReaderPopover
+		popoverTitle: PropTypes.string, // used by ReaderPopover,
 	};
 
 	static defaultProps = {
@@ -49,6 +49,8 @@ class PopoverMenu extends React.Component {
 				className={ this.props.className }
 				rootClassName={ this.props.rootClassName }
 				popoverTitle={ this.props.popoverTitle }
+				popoverPositionLeft={ this.props.popoverPositionLeft }
+				popoverPositionTop={ this.props.popoverPositionTop }
 			>
 				<div
 					ref="menu"

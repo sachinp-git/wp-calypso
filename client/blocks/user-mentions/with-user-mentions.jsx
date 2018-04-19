@@ -3,7 +3,7 @@
  * External dependencies
  */
 import React from 'react';
-import { last, pick } from 'lodash';
+import getCaretCoordinates from 'textarea-caret';
 
 /**
  * Internal dependencies
@@ -34,13 +34,43 @@ export default EnhancedComponent =>
 			super( props );
 			// create a ref to store the textarea DOM element
 			this.textInput = React.createRef();
+			this.popoverStyles = {};
 		}
 
 		componentDidMount() {
-			const { left, top } = this.getPosition();
+			const { left, top, height } = this.getPosition();
 
 			this.left = left;
 			this.top = top;
+			this.height = height;
+		}
+
+		componentWillUpdate( nextProps, nextState ) {
+			// Update position of popover if going from invisible to visible state.
+			if ( ! this.state.showPopover && nextState.showPopover ) {
+				this.updatePosition( nextState );
+				//this.props.editor.on( 'keydown', this.onKeyDown );
+
+				return;
+			}
+
+			// Visible to invisible state.
+			if ( this.state.showPopover && ! nextState.showPopover ) {
+				//this.props.editor.off( 'keydown', this.onKeyDown );
+
+				return;
+			}
+
+			// Update position of popover if cursor has moved to a new line.
+			if ( nextState.showPopover ) {
+				const { top, left } = this.getPosition();
+				const isLineBefore = this.top > top && this.left < left;
+				const isLineAfter = this.top < top && this.left > left;
+
+				if ( isLineBefore || isLineAfter ) {
+					this.updatePosition( nextState, { top, left } );
+				}
+			}
 		}
 
 		handleKeyPress = e => {
@@ -55,34 +85,23 @@ export default EnhancedComponent =>
 			this.setState( { popoverContext } );
 		};
 
-		getPosition( { query } = this.state ) {
-			const mentionRange = document.createRange();
+		getPosition() {
 			const node = this.textInput.current;
-
-			// Set range to start at beginning of mention in order to get accurate positioning values.
-			mentionRange.setStart( node, node.selectionStart - query.length );
-			mentionRange.setEnd( node, node.selectionEnd );
-
-			console.log( node.selectionStart );
-			console.log( node.selectionEnd );
-
-			const rectList = mentionRange.getClientRects();
-
-			console.log( rectList );
-
-			let position;
-			if ( rectList && rectList.length > 0 ) {
-				position = pick( last( rectList ), [ 'left', 'top' ] );
-			} else {
-				position = {
-					left: node.offsetLeft,
-					top: node.offsetTop,
-				};
-			}
+			const position = getCaretCoordinates( node, node.selectionEnd );
 
 			console.log( position );
 
 			return position;
+		}
+
+		updatePosition( state, { left, top, height } = this.getPosition( state ) ) {
+			this.left = left;
+			this.top = top;
+			this.height = height;
+
+			this.popoverPositionLeft = `${ this.left }px`;
+			// 10 is the top position of .popover__inner, which hasn't rendered yet.
+			this.popoverPositionTop = `${ this.top + this.height - 10 }px`;
 		}
 
 		render() {
@@ -100,10 +119,13 @@ export default EnhancedComponent =>
 						onKeyPress={ this.handleKeyPress }
 						ref={ this.textInput }
 					/>
-					{ this.state.showPopover && (
+
+					{ this.textInput.current && (
 						<UserMentionSuggestionList
 							suggestions={ suggestions }
-							popoverContext={ this.textInput }
+							popoverContext={ this.textInput.current }
+							popoverPositionLeft={ this.popoverPositionLeft }
+							popoverPositionTop={ this.popoverPositionTop }
 						/>
 					) }
 				</div>
