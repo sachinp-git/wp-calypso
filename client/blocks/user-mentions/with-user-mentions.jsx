@@ -27,7 +27,7 @@ export default EnhancedComponent =>
 		state = {
 			showPopover: false,
 			popoverContext: null,
-			query: null,
+			query: '',
 		};
 
 		constructor( props ) {
@@ -36,11 +36,19 @@ export default EnhancedComponent =>
 			this.textInput = React.createRef();
 		}
 
+		componentDidMount() {
+			const { left, top } = this.getPosition();
+
+			this.left = left;
+			this.top = top;
+		}
+
 		handleKeyPress = e => {
 			if ( e.target.value[ e.target.value.length - 1 ] === '@' ) {
 				console.log( 'found @something' ); // eslint-disable-line no-console
 				this.setState( { showPopover: true } );
 			}
+			this.getPosition();
 		};
 
 		setPopoverContext = popoverContext => {
@@ -55,10 +63,26 @@ export default EnhancedComponent =>
 			mentionRange.setStart( node, node.selectionStart - query.length );
 			mentionRange.setEnd( node, node.selectionEnd );
 
-			const rectList = mentionRange.getClientRects();
-			const position = last( rectList ); //or default?
+			console.log( node.selectionStart );
+			console.log( node.selectionEnd );
 
-			return pick( position, [ 'left', 'top' ] );
+			const rectList = mentionRange.getClientRects();
+
+			console.log( rectList );
+
+			let position;
+			if ( rectList && rectList.length > 0 ) {
+				position = pick( last( rectList ), [ 'left', 'top' ] );
+			} else {
+				position = {
+					left: node.offsetLeft,
+					top: node.offsetTop,
+				};
+			}
+
+			console.log( position );
+
+			return position;
 		}
 
 		render() {
@@ -68,7 +92,7 @@ export default EnhancedComponent =>
 					user_login: 'testuser',
 				},
 			];
-			const position = this.getPosition();
+
 			return (
 				<div>
 					<EnhancedComponent
