@@ -107,6 +107,21 @@ loadScript( '//stats.wp.com/w.js?56', function( error ) {
 // Google Analytics
 // Note that doNotTrack() and isPiiUrl() can change at any time so they shouldn't be stored in a variable.
 
+/**
+ * Returns whether Google Analytics is allowed.
+ *
+ * This function returns false if:
+ *
+ * 1. `google-analytics` feature is disabled
+ * 2. `Do Not Track` is enabled
+ * 3. `document.location.href` may contain personally identifiable information
+ *
+ * @returns {Boolean} true if GA is allowed.
+ */
+function isGoogleAnalyticsAllowed() {
+	return config.isEnabled( 'google-analytics' ) && ! doNotTrack() && ! isPiiUrl();
+}
+
 function buildQuerystring( group, name ) {
 	let uriComponent = '';
 
@@ -512,18 +527,26 @@ const analytics = {
 };
 
 /**
- * Returns whether Google Analytics is allowed.
+ * Loading Google analytics independently from the rest of the tracking scripts.
  *
- * This function returns false if:
+ * Why? Because ad-tracking and google-analytics have two different switches and we
+ * would probably not want one to stop the other.
  *
- * 1. `google-analytics` feature is disabled
- * 2. `Do Not Track` is enabled
- * 3. `document.location.href` may contain personally identifiable information
- *
- * @returns {Boolean} true if GA is allowed.
+ * Moreover, analytics gets loaded with the page load, while the tracking is lazy-loaded
+ * during actions.
  */
-export function isGoogleAnalyticsAllowed() {
-	return config.isEnabled( 'google-analytics' ) && ! doNotTrack() && ! isPiiUrl();
+async function loadGoogleAnalytics() {
+	try {
+		await loadScript( 'https://www.google-analytics.com/analytics.js' );
+	} catch ( error ) {
+		debug( 'GA script failed to load properly: ', error );
+	}
+}
+
+if ( isGoogleAnalyticsAllowed() ) {
+	window.addEventListener
+		? window.addEventListener( 'load', loadGoogleAnalytics, false )
+		: window.attachEvent( 'onload', loadGoogleAnalytics );
 }
 
 /**

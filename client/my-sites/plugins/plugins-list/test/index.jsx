@@ -25,7 +25,6 @@ jest.mock( 'lib/analytics', () => ( {
 	ga: {
 		recordEvent: () => {},
 	},
-	isGoogleAnalyticsAllowed: () => false,
 } ) );
 jest.mock( 'lib/user', () => () => {} );
 jest.mock( 'lib/wp', () => ( {
