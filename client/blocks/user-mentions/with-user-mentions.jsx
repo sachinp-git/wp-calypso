@@ -87,7 +87,12 @@ export default EnhancedComponent =>
 
 		getPosition() {
 			const node = this.textInput.current;
-			const position = getCaretCoordinates( node, node.selectionEnd );
+			const nodeRect = node.getBoundingClientRect();
+			const caretPosition = getCaretCoordinates( node, node.selectionEnd );
+			const position = {
+				left: nodeRect.left + caretPosition.left,
+				top: nodeRect.top + caretPosition.top + 10,
+			};
 
 			console.log( position );
 
@@ -101,7 +106,7 @@ export default EnhancedComponent =>
 
 			this.popoverPositionLeft = `${ this.left }px`;
 			// 10 is the top position of .popover__inner, which hasn't rendered yet.
-			this.popoverPositionTop = `${ this.top + this.height - 10 }px`;
+			this.popoverPositionTop = `${ this.top }px`;
 		}
 
 		render() {

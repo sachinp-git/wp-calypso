@@ -35,6 +35,7 @@ class UserMentionSuggestionList extends Component {
 				onClose={ onClose }
 				popoverPositionLeft={ this.props.popoverPositionLeft }
 				popoverPositionTop={ this.props.popoverPositionTop }
+				showArrow={ false }
 			>
 				{ suggestions.map( suggestion => (
 					<PopoverMenuItem
