@@ -94,7 +94,7 @@ export default EnhancedComponent =>
 				top: nodeRect.top + caretPosition.top + 10,
 			};
 
-			console.log( position );
+			console.log( position ); // eslint-disable-line no-console
 
 			return position;
 		}
