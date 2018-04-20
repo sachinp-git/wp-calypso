@@ -90,7 +90,7 @@ export default EnhancedComponent =>
 			const nodeRect = node.getBoundingClientRect();
 			const caretPosition = getCaretCoordinates( node, node.selectionEnd );
 			const position = {
-				left: nodeRect.left + caretPosition.left,
+				left: nodeRect.left + caretPosition.left + 8,
 				top: nodeRect.top + caretPosition.top + 10,
 			};
 
