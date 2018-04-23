@@ -266,10 +266,6 @@ export class JetpackAuthorize extends Component {
 		return partnerRedirectFlag ? partnerId && PRESSABLE_PARTNER_ID !== partnerId : partnerId;
 	}
 
-	handleClickHelp = () => {
-		this.props.recordTracksEvent( 'calypso_jpc_help_link_click' );
-	};
-
 	handleSignOut = () => {
 		const { recordTracksEvent } = this.props;
 		recordTracksEvent( 'calypso_jpc_signout_click' );
@@ -585,7 +581,7 @@ export class JetpackAuthorize extends Component {
 					{ translate( 'Create a new account' ) }
 				</LoggedOutFormLinkItem>
 				<JetpackConnectHappychatButton eventName="calypso_jpc_authorize_chat_initiated">
-					<HelpButton onClick={ this.handleClickHelp } />
+					<HelpButton />
 				</JetpackConnectHappychatButton>
 			</LoggedOutFormLinks>
 		);
