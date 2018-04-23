@@ -74,7 +74,10 @@ export default EnhancedComponent =>
 		}
 
 		handleKeyPress = e => {
-			if ( e.target.value[ e.target.value.length - 1 ] === '@' ) {
+			console.log( '@mention query text is ' + this.getQueryText() ); // eslint-disable-line no-console
+
+			// Is the text before the caret an @ symbol?
+			if ( e.target.value[ e.target.value.length - 2 ] === '@' ) {
 				console.log( 'found @something' ); // eslint-disable-line no-console
 				this.setState( { showPopover: true } );
 			}
@@ -84,6 +87,17 @@ export default EnhancedComponent =>
 		setPopoverContext = popoverContext => {
 			this.setState( { popoverContext } );
 		};
+
+		getQueryText() {
+			const node = this.textInput.current;
+			// (?:^|\\s) means start of input or whitespace
+			// ([A-Za-z0-9_\+\-]*) means 0 or more instances of: A-Z a-z 0-9 _ + -
+			const matcher = new RegExp( '(?:^|\\s)@([A-Za-z0-9_+-]*)$', 'gi' );
+			const textBeforeCaret = node.value.slice( 0, node.selectionEnd );
+			const match = matcher.exec( textBeforeCaret );
+
+			return match && match.length > 1 ? match[ 1 ] : null;
+		}
 
 		getPosition() {
 			const node = this.textInput.current;
