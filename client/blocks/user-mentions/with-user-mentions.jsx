@@ -11,7 +11,7 @@ import { escapeRegExp, findIndex, get, head, includes } from 'lodash';
  */
 import UserMentionSuggestionList from './suggestion-list';
 
-const keys = { enter: 13, esc: 27, spaceBar: 32, upArrow: 38, downArrow: 40 };
+const keys = { tab: 9, enter: 13, esc: 27, spaceBar: 32, upArrow: 38, downArrow: 40 };
 
 /**
  * withUserMentionSuggestions is a higher-order component that adds user mention support to whatever input it wraps.
@@ -54,15 +54,6 @@ export default EnhancedComponent =>
 			// Update position of popover if going from invisible to visible state.
 			if ( ! this.state.showPopover && nextState.showPopover ) {
 				this.updatePosition( nextState );
-				//this.props.editor.on( 'keydown', this.onKeyDown );
-
-				return;
-			}
-
-			// Visible to invisible state.
-			if ( this.state.showPopover && ! nextState.showPopover ) {
-				//this.props.editor.off( 'keydown', this.onKeyDown );
-
 				return;
 			}
 
@@ -112,15 +103,17 @@ export default EnhancedComponent =>
 				return this.hidePopover();
 			}
 
-			if ( event.keyCode === keys.enter ) {
+			if ( includes( [ keys.enter, keys.tab ], event.keyCode ) ) {
 				if ( ! this.state.showPopover || this.matchingSuggestions.length === 0 ) {
 					return;
 				}
 
+				event.preventDefault();
+
 				const suggestion = this.getSuggestion();
 
 				if ( suggestion ) {
-					//this.insertSuggestion( suggestion );
+					this.insertSuggestion( suggestion );
 				}
 
 				return this.hidePopover();
@@ -190,6 +183,17 @@ export default EnhancedComponent =>
 			return suggestions.slice( 0, 10 );
 		}
 
+		insertSuggestion = ( { user_login: userLogin } ) => {
+			if ( ! userLogin ) {
+				return;
+			}
+
+			const node = this.textInput.current;
+
+			// @todo need to find previous @ and replace from there
+			node.value += userLogin;
+		};
+
 		updatePosition( state, { left, top, height } = this.getPosition( state ) ) {
 			this.left = left;
 			this.top = top;
@@ -245,6 +249,8 @@ export default EnhancedComponent =>
 								popoverContext={ this.textInput.current }
 								popoverPositionLeft={ this.popoverPositionLeft }
 								popoverPositionTop={ this.popoverPositionTop }
+								onClick={ this.insertSuggestion }
+								onClose={ this.hidePopover }
 							/>
 						) }
 				</div>
