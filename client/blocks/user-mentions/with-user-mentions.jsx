@@ -4,11 +4,14 @@
  */
 import React from 'react';
 import getCaretCoordinates from 'textarea-caret';
+import { escapeRegExp, findIndex, get, head, includes } from 'lodash';
 
 /**
  * Internal dependencies
  */
 import UserMentionSuggestionList from './suggestion-list';
+
+const keys = { enter: 13, esc: 27, spaceBar: 32, upArrow: 38, downArrow: 40 };
 
 /**
  * withUserMentionSuggestions is a higher-order component that adds user mention support to whatever input it wraps.
@@ -20,6 +23,8 @@ import UserMentionSuggestionList from './suggestion-list';
  */
 export default EnhancedComponent =>
 	class withUserMentions extends React.Component {
+		matchingSuggestions = [];
+
 		static displayName = `withUserMentions( ${ EnhancedComponent.displayName ||
 			EnhancedComponent.name } )`;
 		static propTypes = {};
@@ -73,19 +78,61 @@ export default EnhancedComponent =>
 			}
 		}
 
-		handleKeyPress = e => {
-			console.log( '@mention query text is ' + this.getQueryText() ); // eslint-disable-line no-console
+		handleKeyDown = event => {
+			const selectedIndex = this.getSelectedSuggestionIndex();
 
-			// Is the text before the caret an @ symbol?
-			if ( e.target.value[ e.target.value.length - 2 ] === '@' ) {
-				console.log( 'found @something' ); // eslint-disable-line no-console
-				this.setState( { showPopover: true } );
+			if ( ! includes( [ keys.upArrow, keys.downArrow ], event.keyCode ) || -1 === selectedIndex ) {
+				return;
 			}
-			this.getPosition();
+
+			let nextIndex;
+
+			// Cancel the cursor move.
+			event.preventDefault();
+
+			if ( event.keyCode === keys.downArrow ) {
+				nextIndex = ( selectedIndex + 1 ) % this.matchingSuggestions.length;
+			} else {
+				nextIndex = selectedIndex - 1;
+
+				if ( nextIndex < 0 ) {
+					nextIndex = this.matchingSuggestions.length - 1;
+				}
+			}
+
+			this.setState( { selectedSuggestionId: this.matchingSuggestions[ nextIndex ].ID } );
 		};
 
-		setPopoverContext = popoverContext => {
-			this.setState( { popoverContext } );
+		handleKeyUp = event => {
+			if ( includes( [ keys.downArrow, keys.upArrow ], event.keyCode ) ) {
+				return;
+			}
+
+			if ( includes( [ keys.spaceBar, keys.esc ], event.keyCode ) ) {
+				return this.hidePopover();
+			}
+
+			if ( event.keyCode === keys.enter ) {
+				if ( ! this.state.showPopover || this.matchingSuggestions.length === 0 ) {
+					return;
+				}
+
+				const suggestion = this.getSuggestion();
+
+				if ( suggestion ) {
+					//this.insertSuggestion( suggestion );
+				}
+
+				return this.hidePopover();
+			}
+
+			const query = this.getQueryText();
+
+			this.setState( {
+				showPopover: query !== null,
+				selectedSuggestionId: null,
+				query,
+			} );
 		};
 
 		getQueryText() {
@@ -113,6 +160,36 @@ export default EnhancedComponent =>
 			return position;
 		}
 
+		getSuggestion() {
+			const index = this.getSelectedSuggestionIndex();
+
+			return index > -1 ? this.matchingSuggestions[ index ] : null;
+		}
+
+		getSelectedSuggestionIndex() {
+			if ( ! this.state.selectedSuggestionId ) {
+				return 0;
+			}
+
+			return findIndex(
+				this.matchingSuggestions,
+				( { ID: id } ) => id === this.state.selectedSuggestionId
+			);
+		}
+
+		getMatchingSuggestions( suggestions, query ) {
+			if ( query ) {
+				query = escapeRegExp( query );
+				const matcher = new RegExp( `^${ query }|\\s${ query }`, 'ig' ); // Start of string or preceded by a space.
+
+				suggestions = suggestions.filter( ( { user_login: login, display_name: name } ) =>
+					matcher.test( `${ login } ${ name }` )
+				);
+			}
+
+			return suggestions.slice( 0, 10 );
+		}
+
 		updatePosition( state, { left, top, height } = this.getPosition( state ) ) {
 			this.left = left;
 			this.top = top;
@@ -123,30 +200,53 @@ export default EnhancedComponent =>
 			this.popoverPositionTop = `${ this.top }px`;
 		}
 
+		hidePopover = () => this.setState( { showPopover: false } );
+
 		render() {
+			//const { siteId } = this.props;
+			const { query, showPopover } = this.state;
 			const suggestions = [
 				{
 					ID: 1,
-					user_login: 'testuser',
+					user_login: 'bungle',
+				},
+				{
+					ID: 2,
+					user_login: 'george',
+				},
+				{
+					ID: 3,
+					user_login: 'zippy',
+				},
+				{
+					ID: 4,
+					user_login: 'geoffrey',
 				},
 			];
+
+			this.matchingSuggestions = this.getMatchingSuggestions( suggestions, query );
+			const selectedSuggestionId =
+				this.state.selectedSuggestionId || get( head( this.matchingSuggestions ), 'ID' );
 
 			return (
 				<div>
 					<EnhancedComponent
 						{ ...this.props }
-						onKeyPress={ this.handleKeyPress }
+						onKeyUp={ this.handleKeyUp }
+						onKeyDown={ this.handleKeyDown }
 						ref={ this.textInput }
 					/>
 
-					{ this.textInput.current && (
-						<UserMentionSuggestionList
-							suggestions={ suggestions }
-							popoverContext={ this.textInput.current }
-							popoverPositionLeft={ this.popoverPositionLeft }
-							popoverPositionTop={ this.popoverPositionTop }
-						/>
-					) }
+					{ showPopover &&
+						this.matchingSuggestions.length > 0 && (
+							<UserMentionSuggestionList
+								suggestions={ this.matchingSuggestions }
+								selectedSuggestionId={ selectedSuggestionId }
+								popoverContext={ this.textInput.current }
+								popoverPositionLeft={ this.popoverPositionLeft }
+								popoverPositionTop={ this.popoverPositionTop }
+							/>
+						) }
 				</div>
 			);
 		}
