@@ -61,6 +61,8 @@ export function filterUserObject( obj ) {
 		'is_new_reader',
 		'social_signup_service',
 		'abtests',
+		'first_name',
+		'last_name',
 	];
 	const decodeWhitelist = [ 'display_name', 'description', 'user_URL' ];
 

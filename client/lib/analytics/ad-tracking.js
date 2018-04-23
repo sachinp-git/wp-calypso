@@ -324,7 +324,7 @@ async function loadTrackingScripts( callback ) {
 
 	// init Facebook
 	if ( isFacebookEnabled ) {
-		window.fbq( 'init', TRACKING_IDS.facebookInit );
+		initFacebook();
 	}
 
 	// init Bing
@@ -1239,6 +1239,40 @@ function costToUSD( cost, currency ) {
  */
 function isSupportedCurrency( currency ) {
 	return Object.keys( EXCHANGE_RATES ).indexOf( currency ) !== -1;
+}
+
+/**
+ * Initializes the Facebook pixel, including the advanced matching
+ */
+function initFacebook() {
+	const currentUser = user.get();
+
+	if ( ! currentUser ) {
+		// simple tracking, no advanced matching
+		window.fbq( 'init', TRACKING_IDS.facebookInit );
+
+		return;
+	}
+
+	// ADVANCED MATCHING
+	// https://developers.facebook.com/docs/facebook-pixel/pixel-with-ads/conversion-tracking#advanced_match
+	// All data must be in lowercase. Remove all spaces.
+	const fbRequirementsFormatter = function( str ) {
+		return str
+			.toString()
+			.toLowerCase()
+			.replace( / /g, '' );
+	};
+
+	const advancedMatching = {
+		em: fbRequirementsFormatter( currentUser.email ),
+		fn: fbRequirementsFormatter( currentUser.first_name || '' ),
+		ln: fbRequirementsFormatter( currentUser.last_name || '' ),
+	};
+
+	debug( 'FB Advanced Matching', advancedMatching );
+
+	window.fbq( 'init', TRACKING_IDS.facebookInit, advancedMatching );
 }
 
 /**
