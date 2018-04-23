@@ -11,7 +11,7 @@ import { escapeRegExp, findIndex, get, head, includes } from 'lodash';
  */
 import UserMentionSuggestionList from './suggestion-list';
 
-const keys = { tab: 9, enter: 13, esc: 27, spaceBar: 32, upArrow: 38, downArrow: 40 };
+const keys = { enter: 13, esc: 27, spaceBar: 32, upArrow: 38, downArrow: 40 };
 
 /**
  * withUserMentionSuggestions is a higher-order component that adds user mention support to whatever input it wraps.
@@ -103,7 +103,7 @@ export default EnhancedComponent =>
 				return this.hidePopover();
 			}
 
-			if ( includes( [ keys.enter, keys.tab ], event.keyCode ) ) {
+			if ( includes( [ keys.enter ], event.keyCode ) ) {
 				if ( ! this.state.showPopover || this.matchingSuggestions.length === 0 ) {
 					return;
 				}
@@ -189,9 +189,12 @@ export default EnhancedComponent =>
 			}
 
 			const node = this.textInput.current;
+			const textBeforeCaret = node.value.slice( 0, node.selectionEnd );
+			const lastAtSymbolPosition = textBeforeCaret.lastIndexOf( '@' );
+			const textBeforeAtSymbol = node.value.slice( 0, lastAtSymbolPosition );
+			const textAfterSelectionEnd = node.value.slice( node.selectionEnd, node.value.length + 1 );
 
-			// @todo need to find previous @ and replace from there
-			node.value += userLogin;
+			node.value = textBeforeAtSymbol + '@' + userLogin + textAfterSelectionEnd;
 		};
 
 		updatePosition( state, { left, top, height } = this.getPosition( state ) ) {
