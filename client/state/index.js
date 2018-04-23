@@ -80,7 +80,7 @@ import signup from './signup/reducer';
 import simplePayments from './simple-payments/reducer';
 import sites from './sites/reducer';
 import siteRoles from './site-roles/reducer';
-import siteRename from './site-rename/reducer';
+import siteAddressChange from './site-rename/reducer';
 import siteSettings from './site-settings/reducer';
 import stats from './stats/reducer';
 import storedCards from './stored-cards/reducer';
@@ -168,7 +168,7 @@ const reducers = {
 	signup,
 	sites,
 	siteRoles,
-	siteRename,
+	siteAddressChange,
 	siteSettings,
 	simplePayments,
 	stats,
