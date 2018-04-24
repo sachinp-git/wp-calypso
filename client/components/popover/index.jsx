@@ -57,7 +57,6 @@ class Popover extends Component {
 		showDelay: PropTypes.number,
 		onClose: PropTypes.func,
 		onShow: PropTypes.func,
-		showArrow: PropTypes.bool,
 	};
 
 	static defaultProps = {
@@ -71,7 +70,6 @@ class Popover extends Component {
 		showDelay: 0,
 		onClose: noop,
 		onShow: noop,
-		showArrow: true,
 	};
 
 	/**
@@ -472,7 +470,7 @@ class Popover extends Component {
 		return (
 			<RootChild className={ this.props.rootClassName }>
 				<div style={ stylePosition } className={ classes } ref={ this.props.popoverRef }>
-					{ this.props.showArrow && <div className="popover__arrow" /> }
+					<div className="popover__arrow" />
 
 					<div ref={ this.setDOMBehavior } className="popover__inner">
 						{ this.props.children }
