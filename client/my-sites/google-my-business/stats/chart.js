@@ -22,6 +22,18 @@ import { changeGoogleMyBusinessStatsInterval } from 'state/ui/google-my-business
 import { getStatsInterval } from 'state/ui/google-my-business/selectors';
 import { getSelectedSiteId } from 'state/ui/selectors';
 
+function transformData( data, dataSeriesInfo ) {
+	if ( ! data ) {
+		return data;
+	}
+
+	return data.metricValues.map( value => ( {
+		value: value.totalValue.value,
+		description: get( dataSeriesInfo, `${ value.metric }.description`, '' ),
+		name: get( dataSeriesInfo, `${ value.metric }.name`, value.metric ),
+	} ) );
+}
+
 class GoogleMyBusinessStatsChart extends Component {
 	static propTypes = {
 		changeGoogleMyBusinessStatsInterval: PropTypes.func.isRequired,
@@ -40,9 +52,18 @@ class GoogleMyBusinessStatsChart extends Component {
 		dataSeriesInfo: {},
 	};
 
-	state = {
-		transformedData: this.transformData( this.props.data ),
-	};
+	state = {};
+
+	static getDerivedStateFromProps( nextProps, prevState ) {
+		if ( nextProps.data === prevState.data ) {
+			return null;
+		}
+
+		return {
+			data: nextProps.data,
+			transformedData: transformData( nextProps.data, nextProps.dataSeriesInfo ),
+		};
+	}
 
 	componentDidMount() {
 		this.props.requestGoogleMyBusinessStats(
@@ -52,42 +73,21 @@ class GoogleMyBusinessStatsChart extends Component {
 		);
 	}
 
-	componentWillReceiveProps( nextProps ) {
-		if ( this.props.data !== nextProps.data ) {
-			this.setState( {
-				transformedData: this.transformData( nextProps.data ),
-			} );
-		}
-
-		if (
+	shouldComponentUpdate( nextProps, nextState ) {
+		return (
 			this.props.interval !== nextProps.interval ||
 			this.props.siteId !== nextProps.siteId ||
-			this.props.statType !== nextProps.statType
-		) {
-			nextProps.requestGoogleMyBusinessStats(
-				nextProps.siteId,
-				nextProps.statType,
-				nextProps.interval,
-			);
-		}
-	}
-
-	shouldComponentUpdate( nextProps ) {
-		return (
-			this.props.interval !== nextProps.interval || ! isEqual( this.props.data, nextProps.data )
+			this.props.statType !== nextProps.statType ||
+			! isEqual( this.state.data, nextState.data )
 		);
 	}
 
-	transformData( data ) {
-		if ( ! data ) {
-			return data;
-		}
-
-		return data.metricValues.map( value => ( {
-			value: value.totalValue.value,
-			description: get( this.props.dataSeriesInfo, `${ value.metric }.description`, '' ),
-			name: get( this.props.dataSeriesInfo, `${ value.metric }.name`, value.metric ),
-		} ) );
+	componentDidUpdate() {
+		this.props.requestGoogleMyBusinessStats(
+			this.props.siteId,
+			this.props.statType,
+			this.props.interval
+		);
 	}
 
 	changeInterval = event =>
