@@ -4,7 +4,7 @@
  */
 import React from 'react';
 import getCaretCoordinates from 'textarea-caret';
-import { escapeRegExp, findIndex, get, head, includes } from 'lodash';
+import { escapeRegExp, findIndex, get, head, includes, throttle } from 'lodash';
 
 /**
  * Internal dependencies
@@ -48,6 +48,10 @@ export default EnhancedComponent =>
 			this.left = left;
 			this.top = top;
 			this.height = height;
+
+			if ( typeof window !== 'undefined' ) {
+				window.addEventListener( 'resize', this.throttledUpdatePosition );
+			}
 		}
 
 		componentWillUpdate( nextProps, nextState ) {
@@ -66,6 +70,12 @@ export default EnhancedComponent =>
 				if ( isLineBefore || isLineAfter ) {
 					this.updatePosition( nextState, { top, left } );
 				}
+			}
+		}
+
+		componentWillUnmount() {
+			if ( typeof window !== 'undefined' ) {
+				window.removeEventListener( 'resize', this.throttledUpdatePosition );
 			}
 		}
 
@@ -197,7 +207,16 @@ export default EnhancedComponent =>
 			node.value = textBeforeAtSymbol + '@' + userLogin + textAfterSelectionEnd;
 		};
 
-		updatePosition( state, { left, top, height } = this.getPosition( state ) ) {
+		updatePosition = ( state = this.state, newPosition ) => {
+			if ( ! newPosition ) {
+				newPosition = this.getPosition( state );
+			}
+
+			//console.log( 'updatePosition' );
+			//console.log( this.state );
+
+			const { left, top, height } = newPosition;
+
 			this.left = left;
 			this.top = top;
 			this.height = height;
@@ -205,7 +224,9 @@ export default EnhancedComponent =>
 			this.popoverPositionLeft = `${ this.left }px`;
 			// 10 is the top position of .popover__inner, which hasn't rendered yet.
 			this.popoverPositionTop = `${ this.top }px`;
-		}
+		};
+
+		throttledUpdatePosition = throttle( this.updatePosition, 100 );
 
 		hidePopover = () => this.setState( { showPopover: false } );
 
